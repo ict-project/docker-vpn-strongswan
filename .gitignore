@@ -1,0 +1,10 @@
+ca-key.pem
+ca-cert.pem
+ca-cert.srl
+server-key.pem
+server-csr.pem
+server-openssl.cnf
+server-cert.pem
+server-dn.txt
+ipsec.secrets
+*.tar
