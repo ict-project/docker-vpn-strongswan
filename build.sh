@@ -91,13 +91,13 @@ echo "You should install this CA certificate on your devices ($CA_PUBLIC_CERT):"
 cat $CA_PUBLIC_CERT
 echo
 echo "In order to run interactively use this command:"
-echo "docker run --cap-add NET_ADMIN --rm -it -p 4500:4500/udp -p 500:500/udp vpn-strongswan:$GIT_VERSION"
+echo "docker run --read-only --cap-add NET_ADMIN --rm -it -p 4500:4500/udp -p 500:500/udp vpn-strongswan:$GIT_VERSION"
 echo
 echo "In order to run in normal mode use this command:"
-echo "docker run --cap-add NET_ADMIN -d -p 4500:4500/udp -p 500:500/udp vpn-strongswan:$GIT_VERSION"
+echo "docker run --read-only --cap-add NET_ADMIN -d -p 4500:4500/udp -p 500:500/udp vpn-strongswan:$GIT_VERSION"
 echo
 echo "In order to run as a service use this command:"
-echo "docker service create --cap-add NET_ADMIN -d -p 4500:4500/udp -p 500:500/udp vpn-strongswan:$GIT_VERSION"
+echo "docker service create --read-only --cap-add NET_ADMIN -d -p 4500:4500/udp -p 500:500/udp vpn-strongswan:$GIT_VERSION"
 echo
 echo "You can change VPN network subnet adding option: -e INTERNAL_SUBNET=\\\"10.10.10.0/24\\\""
 echo "You can change DNS servers adding option: -e DNS_ADDRESS=\\\"8.8.8.8,8.8.4.4\\\""
