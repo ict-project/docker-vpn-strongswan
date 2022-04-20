@@ -5,8 +5,7 @@ SERVER_PUBLIC_CERT_PATH="/etc/ipsec.d/certs/server-cert.pem"
 SERVER_PUBLIC_DN_PATH="/etc/ipsec.d/certs/server-dn.txt"
 SERVER_SECRETS_PATH="/etc/ipsec.secrets"
 SERVER_INTERFACE=$(ip route | grep default | awk '{ print $5 }')
-SERVER_UFW_BEFORE_RULES="/etc/ufw/before.rules"
-SERVER_UFW_SYSCTL="/etc/ufw/sysctl.conf"
+SERVER_IPSEC_CONF="/var/run/ipsec.conf"
 
 if [[ ! -f "$SERVER_PRIVATE_KEY_PATH" ]]; then
     echo "Private server key is missing!"
@@ -43,8 +42,9 @@ fi
 echo "Generating strongswan config:"
 echo "INTERNAL_SUBNET=$INTERNAL_SUBNET"
 echo "DNS_ADDRESS=$DNS_ADDRESS"
+echo "SERVER_IPSEC_CONF=$SERVER_IPSEC_CONF"
 
-cat << EOF > /etc/ipsec.conf
+cat << EOF > $SERVER_IPSEC_CONF
 config setup
     charondebug="ike 1, knl 1, cfg 0"
     uniqueids=no
@@ -73,64 +73,22 @@ conn ikev2-vpn
     ike=chacha20poly1305-sha512-curve25519-prfsha512,aes256gcm16-sha384-prfsha384-ecp384,aes256-sha1-modp1024-modp2048,aes128-sha1-modp1024-modp2048,3des-sha1-modp1024-modp2048!
     esp=chacha20poly1305-sha512,aes256gcm16-ecp384,aes256-sha256,aes256-sha1,3des-sha1!
 EOF
-echo "Strongswan config done..."
 
+echo "Strongswan config done..."
 
 echo "Configuring firewall:"
 echo "SERVER_INTERFACE=$SERVER_INTERFACE"
 echo "INTERNAL_SUBNET=$INTERNAL_SUBNET"
-echo "SERVER_UFW_BEFORE_RULES=$SERVER_UFW_BEFORE_RULES"
-echo "SERVER_UFW_SYSCTL=$SERVER_UFW_SYSCTL"
 
-ufw allow 500,4500/udp
+/usr/sbin/ufw enable
+/sbin/iptables -t nat -A POSTROUTING -s $INTERNAL_SUBNET -o $SERVER_INTERFACE -m policy --pol ipsec --dir out -j ACCEPT
+/sbin/iptables -t nat -A POSTROUTING -s $INTERNAL_SUBNET -o $SERVER_INTERFACE -j MASQUERADE
+/sbin/iptables -t mangle -A FORWARD --match policy --pol ipsec --dir in -s $INTERNAL_SUBNET -o $SERVER_INTERFACE -p tcp -m tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1361:1536 -j TCPMSS --set-mss 1360
+/sbin/iptables -t filter -A ufw-before-forward --match policy --pol ipsec --dir in --proto esp -s $INTERNAL_SUBNET -j ACCEPT
+/sbin/iptables -t filter -A ufw-before-forward --match policy --pol ipsec --dir out --proto esp -d $INTERNAL_SUBNET -j ACCEPT
+/sbin/iptables -t filter -A ufw-user-input -p udp -m multiport --dports 500,4500 -j ACCEPT
 
-if [[ ! -f "$SERVER_UFW_BEFORE_RULES.old" ]]; then 
-    cp $SERVER_UFW_BEFORE_RULES "$SERVER_UFW_BEFORE_RULES.old"
-fi
-
-echo > $SERVER_UFW_BEFORE_RULES
-
-cat << EOF >> $SERVER_UFW_BEFORE_RULES
-*nat
--A POSTROUTING -s $INTERNAL_SUBNET -o $SERVER_INTERFACE -m policy --pol ipsec --dir out -j ACCEPT
--A POSTROUTING -s $INTERNAL_SUBNET -o $SERVER_INTERFACE -j MASQUERADE
-COMMIT
-
-*mangle
--A FORWARD --match policy --pol ipsec --dir in -s $INTERNAL_SUBNET -o $SERVER_INTERFACE -p tcp -m tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1361:1536 -j TCPMSS --set-mss 1360
-COMMIT
-
-EOF
-
-cat "$SERVER_UFW_BEFORE_RULES.old" | sed "s/^COMMIT$//" >> $SERVER_UFW_BEFORE_RULES
-
-cat << EOF >> $SERVER_UFW_BEFORE_RULES
-
--A ufw-before-forward --match policy --pol ipsec --dir in --proto esp -s $INTERNAL_SUBNET -j ACCEPT
--A ufw-before-forward --match policy --pol ipsec --dir out --proto esp -d $INTERNAL_SUBNET -j ACCEPT
-
-COMMIT
-
-EOF
-
-if [[ ! -f "$SERVER_UFW_SYSCTL.old" ]]; then
-    cp $SERVER_UFW_SYSCTL "$SERVER_UFW_SYSCTL.old"
-fi
-
-echo > $SERVER_UFW_SYSCTL
-
-cat "$SERVER_UFW_SYSCTL.old" >> $SERVER_UFW_SYSCTL
-
-cat << EOF >> $SERVER_UFW_SYSCTL
-net/ipv4/ip_forward=1
-net/ipv4/conf/all/accept_redirects=0
-net/ipv4/conf/all/send_redirects=0
-net/ipv4/ip_no_pmtu_disc=1
-
-EOF
-
-ufw disable
-ufw enable
+echo "Firewall config done..."
 
 echo "Strongswan is about to start..."
 exec /usr/sbin/ipsec start --nofork
