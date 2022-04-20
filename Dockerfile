@@ -9,6 +9,7 @@ ADD server-key.pem /etc/ipsec.d/private/server-key.pem
 ADD server-cert.pem /etc/ipsec.d/certs/server-cert.pem
 ADD server-dn.txt /etc/ipsec.d/certs/server-dn.txt
 ADD sysctl.conf /etc/ufw/sysctl.conf
+ADD ufw.conf /etc/ufw/ufw.conf
 ADD ipsec.secrets /etc/ipsec.secrets
 ADD entrypoint.sh /root/entrypoint.sh
 ADD healthcheck.sh /root/healthcheck.sh
