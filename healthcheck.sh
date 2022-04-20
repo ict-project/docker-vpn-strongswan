@@ -4,11 +4,11 @@ HEALTHCHECK_DIR="/var/run"
 HEALTHCHECK_STATUSALL="$HEALTHCHECK_DIR/statusall"
 HEALTHCHECK_LEASES="$HEALTHCHECK_DIR/leases"
 
-exec /usr/sbin/ipsec statusall > "$HEALTHCHECK_STATUSALL.out" 2> "$HEALTHCHECK_STATUSALL.err"
+/usr/sbin/ipsec statusall > "$HEALTHCHECK_STATUSALL.out" 2> "$HEALTHCHECK_STATUSALL.err"
 EXIT_STATUSALL=$?
 echo "$EXIT_STATUSALL" > "$HEALTHCHECK_STATUSALL.code"
 
-exec /usr/sbin/ipsec leases > "$HEALTHCHECK_LEASES.out" 2> "$HEALTHCHECK_LEASES.err"
+/usr/sbin/ipsec leases > "$HEALTHCHECK_LEASES.out" 2> "$HEALTHCHECK_LEASES.err"
 EXIT_LEASES=$?
 echo "$EXIT_LEASES" > "$HEALTHCHECK_LEASES.code
 

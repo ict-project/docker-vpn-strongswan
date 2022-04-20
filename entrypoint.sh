@@ -92,6 +92,3 @@ echo "Firewall config done..."
 
 echo "Strongswan is about to start..."
 exec /usr/sbin/ipsec start --nofork
-EXIT_CODE=$?
-echo "Strongswan has ended ($EXIT_CODE)..."
-exit $EXIT_CODE
