@@ -99,8 +99,8 @@ echo
 echo "In order to run as a service use this command:"
 echo "docker service create --read-only --cap-add NET_ADMIN -d -p 4500:4500/udp -p 500:500/udp vpn-strongswan:$GIT_VERSION"
 echo
-echo "You can change VPN network subnet adding option: -e INTERNAL_SUBNET=\\\"10.10.10.0/24\\\""
-echo "You can change DNS servers adding option: -e DNS_ADDRESS=\\\"8.8.8.8,8.8.4.4\\\""
+echo "You can change VPN network subnet adding option: -e INTERNAL_SUBNET=\"10.10.10.0/24\""
+echo "You can change DNS servers adding option: -e DNS_ADDRESS=\"8.8.8.8,8.8.4.4\""
 echo
 echo "In order to save image use this command:"
 echo "docker save -o vpn-strongswan_$GIT_VERSION.tar vpn-strongswan:$GIT_VERSION"
