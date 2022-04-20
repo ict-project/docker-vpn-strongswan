@@ -2,9 +2,13 @@ ca-key.pem
 ca-cert.pem
 ca-cert.srl
 server-key.pem
+server-key.pem.secret
 server-csr.pem
 server-openssl.cnf
 server-cert.pem
+server-cert.pem.secret
 server-dn.txt
+server-dn.txt.secret
 ipsec.secrets
+ipsec.secrets.secret
 *.tar
