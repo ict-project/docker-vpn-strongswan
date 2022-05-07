@@ -145,6 +145,7 @@ echo "docker service create --read-only --cap-add NET_ADMIN -d $SECRETS -p 4500:
 echo
 echo "You can change VPN network subnet adding option: -e INTERNAL_SUBNET=\"10.10.10.0/24\""
 echo "You can change DNS servers adding option: -e DNS_ADDRESS=\"8.8.8.8,8.8.4.4\""
+echo "You can force all trafic over NAT adding option: -e NAT_ALL_TRAFFIC=\"true\""
 echo
 echo "In order to save image use this command:"
 echo "docker save -o vpn-strongswan_$GIT_VERSION.tar vpn-strongswan:$GIT_VERSION"

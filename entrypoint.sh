@@ -39,6 +39,12 @@ if [[ "DNS$DNS_ADDRESS" == "DNS" ]]; then
     DNS_ADDRESS="8.8.8.8,8.8.4.4"
 fi
 
+if [[ "NAT$NAT_ALL_TRAFFIC" == "NAT" ]]; then
+    NAT_INTERFACE=" -o $SERVER_INTERFACE "
+else
+    NAT_INTERFACE=""
+fi
+
 echo "Generating strongswan config:"
 echo "INTERNAL_SUBNET=$INTERNAL_SUBNET"
 echo "DNS_ADDRESS=$DNS_ADDRESS"
@@ -81,9 +87,9 @@ echo "SERVER_INTERFACE=$SERVER_INTERFACE"
 echo "INTERNAL_SUBNET=$INTERNAL_SUBNET"
 
 /usr/sbin/ufw enable
-/sbin/iptables -t nat -A POSTROUTING -s $INTERNAL_SUBNET -m policy --pol ipsec --dir out -j ACCEPT # -o $SERVER_INTERFACE
-/sbin/iptables -t nat -A POSTROUTING -s $INTERNAL_SUBNET -j MASQUERADE # -o $SERVER_INTERFACE
-/sbin/iptables -t mangle -A FORWARD --match policy --pol ipsec --dir in -s $INTERNAL_SUBNET -p tcp -m tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1361:1536 -j TCPMSS --set-mss 1360 # -o $SERVER_INTERFACE
+/sbin/iptables -t nat -A POSTROUTING -s $INTERNAL_SUBNET $NAT_INTERFACE -m policy --pol ipsec --dir out -j ACCEPT
+/sbin/iptables -t nat -A POSTROUTING -s $INTERNAL_SUBNET $NAT_INTERFACE -j MASQUERADE
+/sbin/iptables -t mangle -A FORWARD --match policy --pol ipsec --dir in -s $INTERNAL_SUBNET $NAT_INTERFACE -p tcp -m tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1361:1536 -j TCPMSS --set-mss 1360
 /sbin/iptables -t filter -A ufw-before-forward --match policy --pol ipsec --dir in --proto esp -s $INTERNAL_SUBNET -j ACCEPT
 /sbin/iptables -t filter -A ufw-before-forward --match policy --pol ipsec --dir out --proto esp -d $INTERNAL_SUBNET -j ACCEPT
 /sbin/iptables -t filter -A ufw-user-input -p udp -m multiport --dports 500,4500 -j ACCEPT
